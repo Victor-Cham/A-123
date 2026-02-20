@@ -10,6 +10,7 @@ let registrosPersonas = [];
 /* ===============================
    EVENTOS
 =============================== */
+
 // Buscar persona
 document.getElementById("btnBuscar").addEventListener("click", buscar);
 document.getElementById("dni").addEventListener("keydown", e => {
@@ -21,12 +22,17 @@ document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgreg
 document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
 document.getElementById("btnCancelarPersona")?.addEventListener("click", cerrarModalAgregar);
 
+// Cambio de categoría
+document.getElementById("agregarCategoria")
+  ?.addEventListener("change", cargarCatalogos);
+
 /* ===============================
    CARGA INICIAL DE REGISTROS
 =============================== */
 async function cargarRegistros() {
   try {
     let registros = localStorage.getItem("registrosPersonas");
+
     if (registros) {
       registrosPersonas = JSON.parse(registros);
       return;
@@ -58,7 +64,7 @@ async function buscar() {
   tbody.innerHTML = `<tr><td colspan="5">Buscando...</td></tr>`;
 
   if (registrosPersonas.length === 0) {
-    await cargarRegistros(); // carga inicial si aún no hay registros
+    await cargarRegistros();
   }
 
   const persona = registrosPersonas.find(p => p.DOCUMENTO === documento);
@@ -153,18 +159,56 @@ function cerrarModalDetalle() {
 }
 
 /* ===============================
+   CATEGORÍAS Y CATÁLOGOS
+=============================== */
+
+function cargarCategorias() {
+  const selectCategoria = document.getElementById("agregarCategoria");
+  selectCategoria.innerHTML = '<option value="">--Seleccione--</option>';
+
+  window.categorias.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat.nombre;
+    option.textContent = cat.nombre;
+    selectCategoria.appendChild(option);
+  });
+}
+
+function cargarCatalogos() {
+  const categoriaSeleccionada = document.getElementById("agregarCategoria").value;
+  const selectCatalogo = document.getElementById("agregarCatalogo");
+
+  selectCatalogo.innerHTML = '<option value="">--Seleccione--</option>';
+
+  const categoria = window.categorias.find(c => c.nombre === categoriaSeleccionada);
+
+  if (!categoria) return;
+
+  categoria.catalogos.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item;
+    option.textContent = item;
+    selectCatalogo.appendChild(option);
+  });
+}
+
+/* ===============================
    MODAL AGREGAR PERSONA
 =============================== */
 function abrirModalAgregar() {
   document.getElementById("modalAgregar").style.display = "flex";
+
+  cargarCategorias();
+
   document.getElementById("nuevoNombre").value = "";
   document.getElementById("nuevoDocumento").value = "";
   document.getElementById("nuevaEmpresa").value = "";
-  document.getElementById("agregarCategoria").value = "";
-  document.getElementById("agregarCatalogo").innerHTML = '<option value="">--Seleccione categoría primero--</option>';
   document.getElementById("agregarDescripcion").value = "";
   document.getElementById("agregarFecha").value = "";
   document.getElementById("mensajeErrorAgregar").textContent = "";
+
+  document.getElementById("agregarCatalogo").innerHTML =
+    '<option value="">--Seleccione categoría primero--</option>';
 }
 
 function cerrarModalAgregar() {
@@ -172,7 +216,7 @@ function cerrarModalAgregar() {
 }
 
 /* ===============================
-   GUARDAR PERSONA (POST JSON)
+   GUARDAR PERSONA
 =============================== */
 async function guardarPersona() {
   const nombre = document.getElementById("nuevoNombre").value.trim();
@@ -210,7 +254,6 @@ async function guardarPersona() {
       alert("Persona agregada correctamente\nCódigo único: " + data.CODIGO_UNICO);
       cerrarModalAgregar();
 
-      // Actualizar localStorage
       const nuevoRegistro = {
         NOMBRE: nombre,
         DOCUMENTO: documento,
@@ -221,12 +264,14 @@ async function guardarPersona() {
         FECHA: fecha,
         CODIGO_UNICO: data.CODIGO_UNICO
       };
+
       registrosPersonas.push(nuevoRegistro);
       localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
 
-      buscar(); // refresca la tabla
+      buscar();
     } else {
-      document.getElementById("mensajeErrorAgregar").textContent = data.error || "Error al guardar";
+      document.getElementById("mensajeErrorAgregar").textContent =
+        data.error || "Error al guardar";
     }
   } catch (error) {
     document.getElementById("mensajeErrorAgregar").textContent = "Error de conexión";
@@ -243,6 +288,8 @@ function formatearFecha(fecha) {
 }
 
 /* ===============================
-   CARGAR REGISTROS AL INICIAR
+   INICIO
 =============================== */
-window.addEventListener("DOMContentLoaded", cargarRegistros);
+window.addEventListener("DOMContentLoaded", () => {
+  cargarRegistros();
+});
