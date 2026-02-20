@@ -8,8 +8,7 @@ let personaActual = null;
 let registrosPersonas = [];
 
 /* ===============================
-   CARGA INICIAL DE REGISTROS
-   🔹 Siempre trae del servidor para evitar cache obsoleta
+   CARGA DE REGISTROS DESDE API
 =============================== */
 async function cargarRegistros() {
   try {
@@ -17,13 +16,20 @@ async function cargarRegistros() {
     const data = await res.json();
 
     if (Array.isArray(data)) {
-      registrosPersonas = data;
+      // 🔹 Convertimos DOCUMENTO a string para preservar ceros iniciales
+      registrosPersonas = data.map(p => ({
+        ...p,
+        DOCUMENTO: (p.DOCUMENTO || "").toString()
+      }));
+
       localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
     } else {
-      console.error("Error al cargar registros:", data.error);
+      registrosPersonas = [];
+      console.warn("No hay registros o formato incorrecto:", data);
     }
   } catch (error) {
-    console.error("Error de conexión al cargar registros", error);
+    registrosPersonas = [];
+    console.error("Error al cargar registros desde API:", error);
   }
 }
 
@@ -38,12 +44,10 @@ async function buscar() {
 
   tbody.innerHTML = `<tr><td colspan="5">Buscando...</td></tr>`;
 
-  // 🔹 Asegurarse de tener registros actualizados
   if (registrosPersonas.length === 0) {
     await cargarRegistros();
   }
 
-  // 🔹 Comparación robusta para no perder ceros iniciales ni espacios
   const limpiarDoc = str => str.toString().trim().replace(/[^0-9]/g, '');
   const persona = registrosPersonas.find(p => limpiarDoc(p.DOCUMENTO) === limpiarDoc(documento));
 
@@ -234,10 +238,10 @@ async function guardarPersona() {
       alert("Persona agregada correctamente\nCódigo único: " + data.CODIGO_UNICO);
       cerrarModalAgregar();
 
-      // 🔹 Actualizar registros desde servidor para incluir cualquier registro nuevo externo
+      // 🔹 Actualizar registros desde API
       await cargarRegistros();
 
-      // 🔹 Buscar inmediatamente al nuevo registro para mostrarlo
+      // 🔹 Buscar inmediatamente al nuevo registro
       document.getElementById("dni").value = documento;
       buscar();
     } else {
@@ -261,7 +265,7 @@ function formatearFecha(fecha) {
 /* ===============================
    INICIO
 =============================== */
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   // Listeners
   document.getElementById("btnBuscar").addEventListener("click", buscar);
   document.getElementById("dni").addEventListener("keydown", e => {
@@ -271,6 +275,6 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
   document.getElementById("agregarCategoria")?.addEventListener("change", cargarCatalogos);
 
-  // 🔹 Cargar registros al inicio (F5) para siempre tener datos actualizados
-  cargarRegistros();
+  // 🔹 Cargar registros desde API al inicio
+  await cargarRegistros();
 });
