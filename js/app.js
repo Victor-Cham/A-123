@@ -91,6 +91,7 @@ async function buscar() {
                 onclick="abrirModalSeguridad()">
           </span>
         </td>
+      <td>${data.persona.CODIGO_UNICO || "-"}</td>
       </tr>
     `;
 
