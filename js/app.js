@@ -1,7 +1,7 @@
 /* ===============================
    CONFIG
 =============================== */
-const API_URL = "TU_NUEVA_API_URL"; // reemplazar con tu nuevo Google Sheet Apps Script
+const API_URL = "https://script.google.com/macros/s/AKfycbyT_oMlthq9uMtnrQZYO9QknhJFumKIOcrblki8IuRaqw7zSfy13c_2DjZV2sPbWu8/exec"; // reemplazar con tu nuevo Google Sheet Apps Script
 const CLAVE_SEGURIDAD = "A123";
 
 let personaActual = null;
