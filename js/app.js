@@ -1,7 +1,7 @@
 /* ===============================
    CONFIG
 =============================== */
-const API_URL = "https://script.google.com/macros/s/TU_ID/exec"; // reemplazar con tu Apps Script
+const API_URL = "https://script.google.com/macros/s/AKfycbxmoYtcf4zqxFuHeVvX8VX_0TyR6bWEl5RQcZR1OikDgzQeUr_njMHC-COM26jEH1pA/exec";
 const CLAVE_SEGURIDAD = "A123";
 
 let personaActual = null;
