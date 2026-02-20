@@ -159,129 +159,13 @@
     </div>
   </div>
 
-  <!-- Scripts existentes -->
+  <!-- Scripts -->
+  <!-- Carga primero categorias.js -->
+  <script src="js/categorias.js"></script>
+
+  <!-- Script principal de la app -->
   <script src="js/app.js"></script>
   <script src="js/sidebar.js"></script>
-
-  <!-- Script Categorías y Catálogos -->
-  <script>
-  const categorias = [
-    { id: 1, nombre: "Laborales", catalogos: [
-      "Suplantación EMO",
-      "Reuniones Extra Laborales en contra de MCP",
-      "Incumplir Protocolo COVID-19",
-      "Incumplimiento Políticas de Protección Empresarial",
-      "Incumplimiento a la Política de Alcohol y Drogas",
-      "Incumplido los reglamentos internos de su compañia"
-    ]},
-    { id: 2, nombre: "Antecedentes Penales y Judiciales", catalogos: `
-Sin Antecedentes
-Abandono de Destino
-Abandono de mujer gestante
-Abigeo
-Aborto
-Aborto Consentido
-Aborto Preterintecional
-Acoso
-Actos contra el pudor
-Apropiación Ilícita
-Apropiación Ilícita y Estafa
-Apropiación Irregular
-Asalto a mano armada
-Asociación Ilícita Para Delinquir; Tráfico Ilícito de Drogas; Peligro Común
-Atentado contra el derecho de sufragio
-Chantaje Sexual
-Coacción
-Coacción; Deserción
-Conducción de Vehículo en estado de ebriedad
-Conducir en estado de ebriedad
-Conducir en estado de ebriedad; Deserción
-Contra los derechos de autor
-Contrabando
-Corrupción
-Corrupción de Funcionario
-Daño Agravado
-Daño Simple
-Daños
-Daños al Patrimonio
-Defraudación
-Delito contra el Patrimonio
-Delito de Contaminación del ambiente
-Delitos conta la Libertad de Sufragio
-Delitos contra el derecho de Sufragio
-Delitos Contra la Administración Pública
-Delitos Contra la Función Jurisdiccional
-Delitos contra la Paz Pública y Robo Agravado
-Delitos contra la salud publica en la modalidad de violación de medidas sanitarias
-Delitos Contra la Tranquilidad Pública;Delito de Asociación Ilícita para Delinquir
-Delitos Económicos
-Delitos Monetarios
-Depredación de flora y fauna legalmente protegidas
-Deserción
-Desobediencia y Resistencia a la Autoridad
-Desobediencia y Resistencia a la Autoridad;Lesiones Culposas
-Disturbios
-Estafa
-Exposición o abandono peligroso
-Extorsión
-Fabricación y falsificación de moneda
-Falsa declaración
-Falsedad Genérica
-Falsedad Genérica; Falsa declaración en procedimiento administrativo; Estafa
-Falsedad Ideológica
-Falsedad Ideológica; Organización Criminal; Estafa Agravada
-Falsificación de Documentos
-Falsificación de Documentos; Falsedad Genérica
-Falta Grave
-Faltas
-Faltas contra el Patrimonio
-Faltas contra las personas
-Feminicidio
-Fraude Procesal
-Homicidio
-Homicidio Calificado
-Homicidio Culposo
-Homicidio Culposo; Delitos contra la Fe Pública
-Homicidio Simple; Lesiones culposas
-Homicidio Simple; Omisión Asistencia Familiar
-Hurto
-Hurto Agravado
-Hurto Agravado; Deserción
-Hurto Agravado; Lesiones Leves
-Hurto Agravado; Lesiones Leves; Deserción
-Hurto Simple
-`.trim().split("\n") } // resto de catálogos recortados para ejemplo, puedes agregar todos
-  ];
-
-  document.addEventListener("DOMContentLoaded", function () {
-    const selectCategoria = document.getElementById("agregarCategoria");
-    const selectCatalogo = document.getElementById("agregarCatalogo");
-
-    categorias.forEach(cat => {
-      const option = document.createElement("option");
-      option.value = cat.id;
-      option.textContent = cat.nombre;
-      selectCategoria.appendChild(option);
-    });
-
-    selectCategoria.addEventListener("change", function () {
-      const categoriaId = parseInt(this.value);
-      selectCatalogo.innerHTML = '<option value="">--Seleccione--</option>';
-      const categoriaSeleccionada = categorias.find(cat => cat.id === categoriaId);
-      if (categoriaSeleccionada) {
-        selectCatalogo.disabled = false;
-        categoriaSeleccionada.catalogos.forEach(item => {
-          const option = document.createElement("option");
-          option.value = item;
-          option.textContent = item;
-          selectCatalogo.appendChild(option);
-        });
-      } else {
-        selectCatalogo.disabled = true;
-      }
-    });
-  });
-  </script>
 
 </body>
 </html>
