@@ -9,16 +9,10 @@ let registrosPersonas = [];
 
 /* ===============================
    CARGA INICIAL DE REGISTROS
+   🔹 Siempre trae del servidor para evitar cache obsoleta
 =============================== */
 async function cargarRegistros() {
   try {
-    let registros = localStorage.getItem("registrosPersonas");
-
-    if (registros) {
-      registrosPersonas = JSON.parse(registros);
-      return;
-    }
-
     const res = await fetch(`${API_URL}?todos=true`);
     const data = await res.json();
 
@@ -34,7 +28,7 @@ async function cargarRegistros() {
 }
 
 /* ===============================
-   BUSCAR PERSONA (LOCAL)
+   BUSCAR PERSONA
 =============================== */
 async function buscar() {
   const documento = document.getElementById("dni").value.trim();
@@ -44,6 +38,7 @@ async function buscar() {
 
   tbody.innerHTML = `<tr><td colspan="5">Buscando...</td></tr>`;
 
+  // 🔹 Asegurarse de tener registros actualizados
   if (registrosPersonas.length === 0) {
     await cargarRegistros();
   }
@@ -160,7 +155,6 @@ function cargarCatalogos() {
   const categoriaSeleccionada = document.getElementById("agregarCategoria").value;
   const selectCatalogo = document.getElementById("agregarCatalogo");
 
-  // Reset
   selectCatalogo.innerHTML = '<option value="">--Seleccione--</option>';
   selectCatalogo.disabled = true;
 
@@ -240,20 +234,11 @@ async function guardarPersona() {
       alert("Persona agregada correctamente\nCódigo único: " + data.CODIGO_UNICO);
       cerrarModalAgregar();
 
-      const nuevoRegistro = {
-        NOMBRE: nombre,
-        DOCUMENTO: documento,
-        EMPRESA: empresa,
-        CATEGORIA: categoria,
-        CATALOGO: catalogo,
-        DESCRIPCION: descripcion,
-        FECHA: fecha,
-        CODIGO_UNICO: data.CODIGO_UNICO
-      };
+      // 🔹 Actualizar registros desde servidor para incluir cualquier registro nuevo externo
+      await cargarRegistros();
 
-      registrosPersonas.push(nuevoRegistro);
-      localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
-
+      // 🔹 Buscar inmediatamente al nuevo registro para mostrarlo
+      document.getElementById("dni").value = documento;
       buscar();
     } else {
       document.getElementById("mensajeErrorAgregar").textContent =
@@ -286,6 +271,6 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
   document.getElementById("agregarCategoria")?.addEventListener("change", cargarCatalogos);
 
-  // Cargar registros al inicio
+  // 🔹 Cargar registros al inicio (F5) para siempre tener datos actualizados
   cargarRegistros();
 });
