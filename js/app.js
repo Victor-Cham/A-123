@@ -1,10 +1,11 @@
 /* ===============================
    CONFIG
 =============================== */
-const API_URL = "https://script.google.com/macros/s/AKfycbyT_oMlthq9uMtnrQZYO9QknhJFumKIOcrblki8IuRaqw7zSfy13c_2DjZV2sPbWu8/exec"; // reemplazar con tu nuevo Google Sheet Apps Script
+const API_URL = "https://script.google.com/macros/s/TU_ID/exec"; // reemplazar con tu Apps Script
 const CLAVE_SEGURIDAD = "A123";
 
 let personaActual = null;
+let registrosPersonas = [];
 
 /* ===============================
    EVENTOS
@@ -15,15 +16,38 @@ document.getElementById("dni").addEventListener("keydown", e => {
   if (e.key === "Enter") buscar();
 });
 
-// Botón agregar persona
+// Modal agregar persona
 document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgregar);
-
-// Modal de registro
 document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
 document.getElementById("btnCancelarPersona")?.addEventListener("click", cerrarModalAgregar);
 
 /* ===============================
-   BUSCAR PERSONA (API)
+   CARGA INICIAL DE REGISTROS
+=============================== */
+async function cargarRegistros() {
+  try {
+    let registros = localStorage.getItem("registrosPersonas");
+    if (registros) {
+      registrosPersonas = JSON.parse(registros);
+      return;
+    }
+
+    const res = await fetch(`${API_URL}?todos=true`);
+    const data = await res.json();
+
+    if (Array.isArray(data)) {
+      registrosPersonas = data;
+      localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
+    } else {
+      console.error("Error al cargar registros:", data.error);
+    }
+  } catch (error) {
+    console.error("Error de conexión al cargar registros", error);
+  }
+}
+
+/* ===============================
+   BUSCAR PERSONA (LOCAL)
 =============================== */
 async function buscar() {
   const documento = document.getElementById("dni").value.trim();
@@ -31,39 +55,37 @@ async function buscar() {
 
   if (!documento) return;
 
-  tbody.innerHTML = `<tr><td colspan="5">Buscando...</td></tr>`; // ahora 5 columnas
+  tbody.innerHTML = `<tr><td colspan="5">Buscando...</td></tr>`;
 
-  try {
-    const res = await fetch(`${API_URL}?documento=${encodeURIComponent(documento)}`);
-    const data = await res.json();
-
-    if (!data.encontrado) {
-      personaActual = null;
-      tbody.innerHTML = `<tr><td colspan="5">Persona no encontrada</td></tr>`;
-      return;
-    }
-
-    personaActual = data.persona;
-
-    tbody.innerHTML = `
-      <tr>
-        <td>${data.persona.NOMBRE}</td>
-        <td>${data.persona.DOCUMENTO}</td>
-        <td>${data.persona.EMPRESA}</td>
-        <td>${data.persona.CODIGO_UNICO}</td>
-        <td>
-          <span class="semaforo"
-                title="Ver detalle"
-                style="background:${colorSemaforo("VERDE")}" 
-                onclick="abrirModalSeguridad()">
-          </span>
-        </td>
-      </tr>
-    `;
-
-  } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="5">Error de conexión</td></tr>`;
+  if (registrosPersonas.length === 0) {
+    await cargarRegistros(); // carga inicial si aún no hay registros
   }
+
+  const persona = registrosPersonas.find(p => p.DOCUMENTO === documento);
+
+  if (!persona) {
+    personaActual = null;
+    tbody.innerHTML = `<tr><td colspan="5">Persona no encontrada</td></tr>`;
+    return;
+  }
+
+  personaActual = persona;
+
+  tbody.innerHTML = `
+    <tr>
+      <td>${persona.NOMBRE}</td>
+      <td>${persona.DOCUMENTO}</td>
+      <td>${persona.EMPRESA}</td>
+      <td>${persona.CODIGO_UNICO}</td>
+      <td>
+        <span class="semaforo"
+              title="Ver detalle"
+              style="background:${colorSemaforo("VERDE")}" 
+              onclick="abrirModalSeguridad()">
+        </span>
+      </td>
+    </tr>
+  `;
 }
 
 /* ===============================
@@ -109,7 +131,7 @@ function mostrarDetalle() {
   document.getElementById("detDocumento").textContent = p.DOCUMENTO;
   document.getElementById("detEmpresa").textContent = p.EMPRESA;
 
-  document.getElementById("detEstadoTexto").textContent = "VERDE"; // por ahora fijo
+  document.getElementById("detEstadoTexto").textContent = "VERDE";
   document.getElementById("detEstadoSemaforo").style.background = "green";
 
   const cont = document.getElementById("detDescripcion");
@@ -140,6 +162,8 @@ function abrirModalAgregar() {
   document.getElementById("nuevaEmpresa").value = "";
   document.getElementById("agregarCategoria").value = "";
   document.getElementById("agregarCatalogo").innerHTML = '<option value="">--Seleccione categoría primero--</option>';
+  document.getElementById("agregarDescripcion").value = "";
+  document.getElementById("agregarFecha").value = "";
   document.getElementById("mensajeErrorAgregar").textContent = "";
 }
 
@@ -169,25 +193,40 @@ async function guardarPersona() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        accion: "agregar",
         NOMBRE: nombre,
         DOCUMENTO: documento,
         EMPRESA: empresa,
         CATEGORIA: categoria,
         CATALOGO: catalogo,
         DESCRIPCION: descripcion,
-        FECHA: fecha
+        FECHA: fecha,
+        usuarioregistra: "ADMIN"
       })
     });
 
     const data = await res.json();
 
-    if (data.exito) {
-      alert("Persona agregada correctamente");
+    if (data.success) {
+      alert("Persona agregada correctamente\nCódigo único: " + data.CODIGO_UNICO);
       cerrarModalAgregar();
-      buscar();
+
+      // Actualizar localStorage
+      const nuevoRegistro = {
+        NOMBRE: nombre,
+        DOCUMENTO: documento,
+        EMPRESA: empresa,
+        CATEGORIA: categoria,
+        CATALOGO: catalogo,
+        DESCRIPCION: descripcion,
+        FECHA: fecha,
+        CODIGO_UNICO: data.CODIGO_UNICO
+      };
+      registrosPersonas.push(nuevoRegistro);
+      localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
+
+      buscar(); // refresca la tabla
     } else {
-      document.getElementById("mensajeErrorAgregar").textContent = data.mensaje || "Error al guardar";
+      document.getElementById("mensajeErrorAgregar").textContent = data.error || "Error al guardar";
     }
   } catch (error) {
     document.getElementById("mensajeErrorAgregar").textContent = "Error de conexión";
@@ -195,10 +234,15 @@ async function guardarPersona() {
 }
 
 /* ===============================
-   UTIL
+   UTILIDADES
 =============================== */
 function formatearFecha(fecha) {
   if (!fecha) return "";
   const f = new Date(fecha);
   return f.toLocaleDateString("es-PE");
 }
+
+/* ===============================
+   CARGAR REGISTROS AL INICIAR
+=============================== */
+window.addEventListener("DOMContentLoaded", cargarRegistros);
