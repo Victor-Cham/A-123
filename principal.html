@@ -36,6 +36,7 @@
       <button id="btnAgregar" class="btn-agregar" title="Agregar Persona">+</button>
     </div>
 
+    <!-- Buscador -->
     <div class="card">
       <section id="busqueda">
         <input type="text" id="dni" placeholder="Ingrese DNI, pasaporte o carnet">
@@ -43,6 +44,7 @@
       </section>
     </div>
 
+    <!-- Tabla -->
     <div class="card">
       <section id="resultado">
         <table id="tablaResultado">
@@ -60,7 +62,7 @@
     </div>
   </main>
 
-  <!-- Modal detalle -->
+  <!-- Modal Detalle -->
   <div id="modalDetalle" class="modal">
     <div class="modal-content">
       <h3>Detalle de la Persona</h3>
@@ -86,7 +88,7 @@
     </div>
   </div>
 
-  <!-- Modal seguridad -->
+  <!-- Modal Seguridad -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <h3>Acceso restringido</h3>
@@ -100,7 +102,7 @@
     </div>
   </div>
 
-  <!-- Modal agregar persona -->
+  <!-- Modal Agregar Persona -->
   <div id="modalAgregar" class="modal">
     <div class="modal-content">
       <h3>Agregar Persona</h3>
@@ -144,6 +146,15 @@
         <input type="date" id="agregarFecha">
       </div>
 
+      <!-- NUEVO: Archivo opcional -->
+      <div class="detalle-item">
+        <strong>Archivo (opcional):</strong>
+        <input type="file" id="agregarArchivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+        <small style="display:block; margin-top:5px; color:gray;">
+          Formatos permitidos: PDF, JPG, PNG, DOC
+        </small>
+      </div>
+
       <div class="modal-buttons">
         <button id="btnGuardarPersona">Guardar</button>
         <button onclick="cerrarModalAgregar()">Cancelar</button>
@@ -157,7 +168,7 @@
   <script src="js/app.js"></script>
   <script src="js/sidebar.js"></script>
 
-  <!-- Script local categorías y catálogos -->
+  <!-- Script Categorías y Catálogos -->
   <script>
   const categorias = [
     {
