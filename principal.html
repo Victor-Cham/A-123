@@ -27,19 +27,15 @@
     <button class="logout-btn" onclick="salir()">Salir</button>
   </nav>
 
-  <!-- Header -->
   <header></header>
 
-  <!-- Contenido principal -->
   <main class="content">
     <div class="page-header">
       <h1>Consulta de Persona</h1>
       <p class="subtitle">Sistema de gestión y validación</p>
-      <!-- Botón agregar persona -->
       <button id="btnAgregar" class="btn-agregar" title="Agregar Persona">+</button>
     </div>
 
-    <!-- Card: Buscador -->
     <div class="card">
       <section id="busqueda">
         <input type="text" id="dni" placeholder="Ingrese DNI, pasaporte o carnet">
@@ -47,7 +43,6 @@
       </section>
     </div>
 
-    <!-- Card: Tabla -->
     <div class="card">
       <section id="resultado">
         <table id="tablaResultado">
@@ -65,7 +60,7 @@
     </div>
   </main>
 
-  <!-- Modal detalle de persona -->
+  <!-- Modal detalle -->
   <div id="modalDetalle" class="modal">
     <div class="modal-content">
       <h3>Detalle de la Persona</h3>
@@ -134,7 +129,7 @@
 
       <div class="detalle-item">
         <strong>Catálogo:</strong>
-        <select id="agregarCatalogo">
+        <select id="agregarCatalogo" disabled>
           <option value="">--Seleccione categoría primero--</option>
         </select>
       </div>
@@ -158,7 +153,74 @@
     </div>
   </div>
 
+  <!-- Scripts existentes -->
   <script src="js/app.js"></script>
   <script src="js/sidebar.js"></script>
+
+  <!-- Script local categorías y catálogos -->
+  <script>
+  const categorias = [
+    {
+      id: 1,
+      nombre: "Laborales",
+      catalogos: [
+        "Contrato Vigente",
+        "Contrato Vencido",
+        "Alta en Planilla",
+        "Suspensión",
+        "Despido"
+      ]
+    },
+    {
+      id: 2,
+      nombre: "Antecedentes Penales y Judiciales",
+      catalogos: [
+        "Sin Antecedentes",
+        "Antecedentes Penales",
+        "Antecedentes Judiciales",
+        "Proceso Abierto",
+        "Requisitoria Vigente"
+      ]
+    }
+  ];
+
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const selectCategoria = document.getElementById("agregarCategoria");
+    const selectCatalogo = document.getElementById("agregarCatalogo");
+
+    categorias.forEach(cat => {
+      const option = document.createElement("option");
+      option.value = cat.id;
+      option.textContent = cat.nombre;
+      selectCategoria.appendChild(option);
+    });
+
+    selectCategoria.addEventListener("change", function () {
+
+      const categoriaId = parseInt(this.value);
+      selectCatalogo.innerHTML = '<option value="">--Seleccione--</option>';
+
+      const categoriaSeleccionada = categorias.find(cat => cat.id === categoriaId);
+
+      if (categoriaSeleccionada) {
+        selectCatalogo.disabled = false;
+
+        categoriaSeleccionada.catalogos.forEach(item => {
+          const option = document.createElement("option");
+          option.value = item;
+          option.textContent = item;
+          selectCatalogo.appendChild(option);
+        });
+
+      } else {
+        selectCatalogo.disabled = true;
+      }
+
+    });
+
+  });
+  </script>
+
 </body>
 </html>
