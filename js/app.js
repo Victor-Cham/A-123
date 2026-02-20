@@ -7,6 +7,37 @@ const CLAVE_SEGURIDAD = "A123";
 let personaActual = null;
 
 /* ===============================
+   CATEGORÍAS Y CATÁLOGOS LOCALES
+=============================== */
+const categorias = [
+  {
+    id: 1,
+    nombre: "Laborales",
+    catalogos: [
+      "Suplantación EMO",
+      "Reuniones Extra Laborales en contra de MCP",
+      "Incumplir Protocolo COVID-19",
+      "Incumplimiento Políticas de Protección Empresarial",
+      "Incumplimiento a la Política de Alcohol y Drogas",
+      "incumplido los reglamentos internos de su compañia"
+    ]
+  },
+  {
+    id: 2,
+    nombre: "Antecedentes Penales y Judiciales",
+    catalogos: [
+      "Sin Antecedentes",
+      "Abandono de Destino",
+      "Homicidio",
+      "Hurto",
+      "Corrupción",
+      "Violencia Familiar (Maltrato Físico y Psicológico)"
+      // ... puedes agregar todos los demás aquí
+    ]
+  }
+];
+
+/* ===============================
    EVENTOS
 =============================== */
 // Buscar persona
@@ -22,34 +53,36 @@ document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgreg
 document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
 document.getElementById("btnCancelarPersona")?.addEventListener("click", cerrarModalAgregar);
 
-// Al cambiar categoría, cargar catálogo
-document.getElementById("agregarCategoria")?.addEventListener("change", async function() {
-  const categoriaId = this.value;
+// Al cambiar categoría, cargar catálogo LOCAL
+document.getElementById("agregarCategoria")?.addEventListener("change", function() {
+  const categoriaId = parseInt(this.value);
   const catalogoSelect = document.getElementById("agregarCatalogo");
-  catalogoSelect.innerHTML = "<option>Cargando...</option>";
 
   if (!categoriaId) {
     catalogoSelect.innerHTML = '<option value="">--Seleccione categoría primero--</option>';
+    catalogoSelect.disabled = true;
     return;
   }
 
-  try {
-    const res = await fetch(`${API_URL}?accion=listaCatalogo&categoriaId=${categoriaId}`);
-    const data = await res.json();
-    catalogoSelect.innerHTML = '<option value="">--Seleccione--</option>';
-    data.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = c.nombre;
-      catalogoSelect.appendChild(opt);
-    });
-  } catch (err) {
-    catalogoSelect.innerHTML = '<option value="">Error al cargar catálogo</option>';
-  }
+  const categoria = categorias.find(c => c.id === categoriaId);
+  if (!categoria) return;
+
+  const valorAnterior = catalogoSelect.value; // Guardamos selección previa
+
+  catalogoSelect.innerHTML = '<option value="">--Seleccione--</option>';
+  categoria.catalogos.forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    if (item === valorAnterior) opt.selected = true; // Restauramos selección
+    catalogoSelect.appendChild(opt);
+  });
+
+  catalogoSelect.disabled = false;
 });
 
 /* ===============================
-   BUSCAR PERSONA
+   BUSCAR PERSONA (API)
 =============================== */
 async function buscar() {
   const documento = document.getElementById("dni").value.trim();
@@ -189,25 +222,20 @@ async function abrirModalAgregar() {
   document.getElementById("nuevaEmpresa").value = "";
   document.getElementById("mensajeErrorAgregar").textContent = "";
 
-  // Cargar categorías
-  try {
-    const res = await fetch(`${API_URL}?accion=listaCategorias`);
-    const data = await res.json();
-    const catSelect = document.getElementById("agregarCategoria");
-    catSelect.innerHTML = '<option value="">--Seleccione--</option>';
-    data.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = c.nombre;
-      catSelect.appendChild(opt);
-    });
-  } catch (err) {
-    console.error("Error cargando categorías", err);
-  }
+  // Cargar categorías LOCALES
+  const catSelect = document.getElementById("agregarCategoria");
+  catSelect.innerHTML = '<option value="">--Seleccione--</option>';
+  categorias.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.nombre;
+    catSelect.appendChild(opt);
+  });
 
   // Reset catálogo
   const catalogoSelect = document.getElementById("agregarCatalogo");
   catalogoSelect.innerHTML = '<option value="">--Seleccione categoría primero--</option>';
+  catalogoSelect.disabled = true;
 }
 
 function cerrarModalAgregar() {
