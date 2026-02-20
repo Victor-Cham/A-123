@@ -2,7 +2,7 @@
    CONFIG
 =============================== */
 const API_URL = "https://script.google.com/macros/s/AKfycbzyRca6zO-r9ruSoEFKrLK3fopszewST8lan6qZhJlQZH7DPj_80FhbCQRQbBQ-mj3G/exec";
-const CLAVE_SEGUIDAD = "A123";
+const CLAVE_SEGURIDAD = "A123"; // 🔹 typo corregido
 
 let personaActual = null;
 let registrosPersonas = [];
@@ -16,12 +16,10 @@ async function cargarRegistros() {
     const data = await res.json();
 
     if (Array.isArray(data)) {
-      // 🔹 Convertimos DOCUMENTO a string para preservar ceros iniciales
       registrosPersonas = data.map(p => ({
         ...p,
         DOCUMENTO: (p.DOCUMENTO || "").toString()
       }));
-
       localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
     } else {
       registrosPersonas = [];
@@ -40,7 +38,7 @@ async function buscar() {
   const documento = document.getElementById("dni").value.trim();
   const tbody = document.querySelector("#tablaResultado tbody");
 
-  if (!documento) return;
+  if (!documento) return null;
 
   tbody.innerHTML = `<tr><td colspan="5">Buscando...</td></tr>`;
 
@@ -54,7 +52,7 @@ async function buscar() {
   if (!persona) {
     personaActual = null;
     tbody.innerHTML = `<tr><td colspan="5">Persona no encontrada</td></tr>`;
-    return;
+    return null;
   }
 
   personaActual = persona;
@@ -74,6 +72,8 @@ async function buscar() {
       <td>${persona.CODIGO_UNICO}</td>
     </tr>
   `;
+
+  return persona;
 }
 
 /* ===============================
@@ -114,6 +114,7 @@ function cerrarModalSeguridad() {
 =============================== */
 function mostrarDetalle() {
   const p = personaActual;
+  if (!p) return;
 
   document.getElementById("detNombre").textContent = p.NOMBRE;
   document.getElementById("detDocumento").textContent = p.DOCUMENTO;
@@ -238,12 +239,9 @@ async function guardarPersona() {
       alert("Persona agregada correctamente\nCódigo único: " + data.CODIGO_UNICO);
       cerrarModalAgregar();
 
-      // 🔹 Actualizar registros desde API
-      await cargarRegistros();
-
-      // 🔹 Buscar inmediatamente al nuevo registro
+      await cargarRegistros(); // 🔹 actualizar registros
       document.getElementById("dni").value = documento;
-      buscar();
+      await buscar(); // 🔹 asegurar personaActual
     } else {
       document.getElementById("mensajeErrorAgregar").textContent =
         data.error || "Error al guardar";
