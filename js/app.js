@@ -1,172 +1,270 @@
-// categorias.js
+/* ===============================
+   CONFIG
+=============================== */
+const API_URL = "https://script.google.com/macros/s/AKfycbz6ZaAYkyXMQg7-SRcSQ9rkCvSB1VgmdCkcUoZsbrBcLELgKp_EN5a9bC7W-pu6RY6B/exec";
+const CLAVE_SEGURIDAD = "A123";
 
-const categorias = [
-  {
-    id: 1,
-    nombre: "Laborales",
-    catalogos: [
-      "Suplantación EMO",
-      "Reuniones Extra Laborales en contra de MCP",
-      "Incumplir Protocolo COVID-19",
-      "Incumplimiento Políticas de Protección Empresarial",
-      "Incumplimiento a la Política de Alcohol y Drogas",
-      "Incumplido los reglamentos internos de su compañia"
-    ]
-  },
-  {
-    id: 2,
-    nombre: "Antecedentes Penales y Judiciales",
-    catalogos: [
-      "Sin Antecedentes",
-      "Abandono de Destino",
-      "Abandono de mujer gestante",
-      "Abigeo",
-      "Aborto",
-      "Aborto Consentido",
-      "Aborto Preterintecional",
-      "Acoso",
-      "Actos contra el pudor",
-      "Apropiación Ilícita",
-      "Apropiación Ilícita y Estafa",
-      "Apropiación Irregular",
-      "Asalto a mano armada",
-      "Asociación Ilícita Para Delinquir; Tráfico Ilícito de Drogas; Peligro Común",
-      "Atentado contra el derecho de sufragio",
-      "Chantaje Sexual",
-      "Coacción",
-      "Coacción; Deserción",
-      "Conducción de Vehículo en estado de ebriedad",
-      "Conducir en estado de ebriedad",
-      "Conducir en estado de ebriedad; Deserción",
-      "Contra los derechos de autor",
-      "Contrabando",
-      "Corrupción",
-      "Corrupción de Funcionario",
-      "Daño Agravado",
-      "Daño Simple",
-      "Daños",
-      "Daños al Patrimonio",
-      "Defraudación",
-      "Delito contra el Patrimonio",
-      "Delito de Contaminación del ambiente",
-      "Delitos contra la Libertad de Sufragio",
-      "Delitos contra el derecho de Sufragio",
-      "Delitos Contra la Administración Pública",
-      "Delitos Contra la Función Jurisdiccional",
-      "Delitos contra la Paz Pública y Robo Agravado",
-      "Delitos contra la salud publica en la modalidad de violación de medidas sanitarias",
-      "Delitos Contra la Tranquilidad Pública;Delito de Asociación Ilícita para Delinquir",
-      "Delitos Económicos",
-      "Delitos Monetarios",
-      "Depredación de flora y fauna legalmente protegidas",
-      "Deserción",
-      "Desobediencia y Resistencia a la Autoridad",
-      "Desobediencia y Resistencia a la Autoridad;Lesiones Culposas",
-      "Disturbios",
-      "Estafa",
-      "Exposición o abandono peligroso",
-      "Extorsión",
-      "Fabricación y falsificación de moneda",
-      "Falsa declaración",
-      "Falsedad Genérica",
-      "Falsedad Genérica; Falsa declaración en procedimiento administrativo; Estafa",
-      "Falsedad Ideológica",
-      "Falsedad Ideológica; Organización Criminal; Estafa Agravada",
-      "Falsificación de Documentos",
-      "Falsificación de Documentos; Falsedad Genérica",
-      "Falta Grave",
-      "Faltas",
-      "Faltas contra el Patrimonio",
-      "Faltas contra las personas",
-      "Feminicidio",
-      "Fraude Procesal",
-      "Homicidio",
-      "Homicidio Calificado",
-      "Homicidio Culposo",
-      "Homicidio Culposo; Delitos contra la Fe Pública",
-      "Homicidio Simple; Lesiones culposas",
-      "Homicidio Simple; Omisión Asistencia Familiar",
-      "Hurto",
-      "Hurto Agravado",
-      "Hurto Agravado; Deserción",
-      "Hurto Agravado; Lesiones Leves",
-      "Hurto Agravado; Lesiones Leves; Deserción",
-      "Hurto Simple",
-      "Impedimento de Salida del País Caducado por Alimentos",
-      "Impedimento de Salida del País por Omisión de Asistencia Familia",
-      "Impedimento de Salida por Omisión a la Asistencia Familiar",
-      "Imprudencia en la Conducción Vehicular",
-      "Inducción a la fuga de menor",
-      "Lesiones Culposas",
-      "Lesiones Culposas; Daño Simple",
-      "Lesiones Culposas; Lesiones Graves",
-      "Lesiones Dolosas",
-      "Lesiones Graves",
-      "Lesiones Graves por Violencia Familiar",
-      "Lesiones Graves; Deserción",
-      "Lesiones Leves",
-      "Lesiones Leves por Violencia Familiar",
-      "Lesiones Leves por Violencia Familiar (formas agravadas)",
-      "Lesiones Leves; Lesiones Culposas",
-      "Libramientos Indebidos (emitir cheque sin fondos)",
-      "Material sin autorización",
-      "Negociación incompatible; Corrupción de Funcionarios; Resistencia a la Autoridad",
-      "Omisión a la Asistencia Familiar",
-      "Omisión Asistencia Familiar",
-      "Omisión Asistencia Familiar ",
-      "Omisión Asistencia Familiar, Deserción",
-      "Omisión Asistencia Familiar, Homicidio Simple",
-      "Omisión Asistencia Familiar; Deserción",
-      "Omisión Asistencia Familiar; Lesiones Graves",
-      "Omisión Asistencia Familiar; Lesiones Leves; Violación Libertad Sexual",
-      "Omisión Asistencia Familiar; Peligro Común",
-      "Omisión Asistencia Familiar; y Homicidio ",
-      "Omisión Asistencia Familiar; Faltas contra las Personas",
-      "Omisión Asistencia Familiar; Hurto Agravado",
-      "Omisión de Asistencia Familiar",
-      "Omisión de Socorro",
-      "Omisión, rehusamiento o demora de actos funcionales",
-      "Peculado",
-      "Peligro Común",
-      "Presunta Violación Sexual",
-      "Proxenetismo",
-      "Receptación",
-      "Resistencia a la Autoridad",
-      "Reuniones Extra Laborales en contra de MCP",
-      "Robo",
-      "Robo Agravado",
-      "Robo Agravado y Hurto Simple",
-      "Robo Agravado; Peligro Común",
-      "Secuestro",
-      "Seducción",
-      "Suplantación EMO",
-      "Sustracción de Menor; Omisión Asistencia Familiar",
-      "Tenencia Ilegal de Armas de Fuego",
-      "Tentativa de Homicidio",
-      "Tentativa de Secuestro",
-      "Terrorismo",
-      "Terrorismo Agravado",
-      "Tocamientos Indebidos",
-      "Tocamientos, actos de connotación sexual o actos libidinosos sin Consentimiento",
-      "Tortura",
-      "Tráfico Ilegal de Armas de Fuego",
-      "Tráfico ilegal de productos forestales maderables",
-      "Tráfico Ilícito de Drogas",
-      "Tráfico Ilícito de Drogas y Deserción",
-      "Trata de Personas",
-      "Uso de Documentos Falsos",
-      "Usurpación",
-      "Usurpación Agravada",
-      "Usurpación; Daños al Patrimonio",
-      "Usurpación; Robo agravado",
-      "Violación de Domicilio",
-      "Violación de la Libertad Sexual",
-      "Violación de la Libertad Sexual; Hurto Simple",
-      "Violación de Medidas Sanitaria",
-      "Violación Libertad Sexual",
-      "Violación Sexual",
-      "Violencia Familiar (Maltrato Físico y Psicológico)",
-      "Violencia Familiar (Maltrato Físico)"
-    ]
+let personaActual = null;
+
+/* ===============================
+   EVENTOS
+=============================== */
+// Buscar persona
+document.getElementById("btnBuscar").addEventListener("click", buscar);
+document.getElementById("dni").addEventListener("keydown", e => {
+  if (e.key === "Enter") buscar();
+});
+
+// Botón agregar persona
+document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgregar);
+
+// Modal de registro
+document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
+document.getElementById("btnCancelarPersona")?.addEventListener("click", cerrarModalAgregar);
+
+// Al cambiar categoría, cargar catálogo (usando categorias.js)
+document.getElementById("agregarCategoria")?.addEventListener("change", function() {
+  cargarCatalogoLocal(this.value);
+});
+
+/* ===============================
+   FUNCIONES CATEGORÍAS/CATÁLOGOS
+=============================== */
+function cargarCatalogoLocal(categoriaId) {
+  const catalogoSelect = document.getElementById("agregarCatalogo");
+  catalogoSelect.disabled = true;
+
+  if (!categoriaId) {
+    catalogoSelect.innerHTML = '<option value="">--Seleccione categoría primero--</option>';
+    return;
   }
-];
+
+  const categoria = categorias.find(c => c.id == categoriaId); // categorias viene de categorias.js
+  if (!categoria) return;
+
+  const valorAnterior = catalogoSelect.value; // mantener selección
+
+  catalogoSelect.innerHTML = '<option value="">--Seleccione--</option>';
+  categoria.catalogos.forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    if (item === valorAnterior) opt.selected = true; // restaurar selección
+    catalogoSelect.appendChild(opt);
+  });
+
+  catalogoSelect.disabled = false;
+}
+
+/* ===============================
+   BUSCAR PERSONA (API)
+=============================== */
+async function buscar() {
+  const documento = document.getElementById("dni").value.trim();
+  const tbody = document.querySelector("#tablaResultado tbody");
+
+  if (!documento) return;
+
+  tbody.innerHTML = `<tr><td colspan="4">Buscando...</td></tr>`;
+
+  try {
+    const res = await fetch(`${API_URL}?documento=${encodeURIComponent(documento)}`);
+    const data = await res.json();
+
+    if (!data.encontrado) {
+      personaActual = null;
+      tbody.innerHTML = `<tr><td colspan="4">Persona no encontrada</td></tr>`;
+      return;
+    }
+
+    personaActual = data;
+
+    tbody.innerHTML = `
+      <tr>
+        <td>${data.persona.nombre}</td>
+        <td>${data.persona.documento}</td>
+        <td>${data.persona.empresa}</td>
+        <td>
+          <span class="semaforo"
+                title="Ver detalle"
+                style="background:${colorSemaforo(data.estado)}"
+                onclick="abrirModalSeguridad()">
+          </span>
+        </td>
+      </tr>
+    `;
+
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="4">Error de conexión</td></tr>`;
+  }
+}
+
+/* ===============================
+   SEMÁFORO
+=============================== */
+function colorSemaforo(estado) {
+  return estado === "ROJO" ? "red" :
+         estado === "AMARILLO" ? "orange" :
+         "green";
+}
+
+/* ===============================
+   MODAL SEGURIDAD
+=============================== */
+function abrirModalSeguridad() {
+  if (!personaActual) return;
+  document.getElementById("codigoAcceso").value = "";
+  document.getElementById("mensajeError").textContent = "";
+  document.getElementById("modal").style.display = "flex";
+}
+
+function validarCodigo() {
+  const codigo = document.getElementById("codigoAcceso").value;
+
+  if (codigo === CLAVE_SEGURIDAD) {
+    cerrarModalSeguridad();
+    mostrarDetalle();
+  } else {
+    document.getElementById("mensajeError").textContent = "Código incorrecto";
+  }
+}
+
+function cerrarModalSeguridad() {
+  document.getElementById("modal").style.display = "none";
+}
+
+/* ===============================
+   MODAL DETALLE
+=============================== */
+function mostrarDetalle() {
+  const p = personaActual.persona;
+
+  document.getElementById("detNombre").textContent = p.nombre;
+  document.getElementById("detDocumento").textContent = p.documento;
+  document.getElementById("detEmpresa").textContent = p.empresa;
+
+  let nivelMax = 0;
+  let descripcionMax = "VERDE";
+
+  if (personaActual.detalles && personaActual.detalles.length > 0) {
+    personaActual.detalles.forEach(det => {
+      if (det.nivel > nivelMax) {
+        nivelMax = det.nivel;
+        descripcionMax = det.tipo_descripcion;
+      }
+    });
+  }
+
+  document.getElementById("detEstadoTexto").textContent = descripcionMax;
+  document.getElementById("detEstadoSemaforo").style.background =
+    nivelMax === 2 ? "red" :
+    nivelMax === 1 ? "orange" :
+    "green";
+
+  const cont = document.getElementById("detDescripcion");
+
+  if (!personaActual.detalles || personaActual.detalles.length === 0) {
+    cont.textContent = "Sin registros.";
+  } else {
+    cont.innerHTML = personaActual.detalles
+      .map(d => `
+        <div class="detalle-item-modal">
+          <strong>${d.tipo_descripcion} (${d.tipo_codigo})</strong><br>
+          Categoria: <em>${d.categoria || "N/A"}</em><br>
+          Catálogo: <em>${d.catalogo || "N/A"}</em><br>
+          Detalle: ${d.descripcion || "-"}<br>
+          Fecha: ${formatearFecha(d.fecha)}
+        </div>
+        <hr>
+      `)
+      .join("");
+  }
+
+  document.getElementById("modalDetalle").style.display = "flex";
+}
+
+function cerrarModalDetalle() {
+  document.getElementById("modalDetalle").style.display = "none";
+}
+
+/* ===============================
+   MODAL AGREGAR PERSONA
+=============================== */
+function abrirModalAgregar() {
+  document.getElementById("modalAgregar").style.display = "flex";
+  document.getElementById("nuevoNombre").value = "";
+  document.getElementById("nuevoDocumento").value = "";
+  document.getElementById("nuevaEmpresa").value = "";
+  document.getElementById("mensajeErrorAgregar").textContent = "";
+
+  // Cargar categorías locales
+  const catSelect = document.getElementById("agregarCategoria");
+  catSelect.innerHTML = '<option value="">--Seleccione--</option>';
+  categorias.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.nombre;
+    catSelect.appendChild(opt);
+  });
+
+  // Reset catálogo
+  const catalogoSelect = document.getElementById("agregarCatalogo");
+  catalogoSelect.innerHTML = '<option value="">--Seleccione categoría primero--</option>';
+  catalogoSelect.disabled = true;
+}
+
+function cerrarModalAgregar() {
+  document.getElementById("modalAgregar").style.display = "none";
+}
+
+/* ===============================
+   GUARDAR PERSONA (POST JSON)
+=============================== */
+async function guardarPersona() {
+  const nombre = document.getElementById("nuevoNombre").value.trim();
+  const documento = document.getElementById("nuevoDocumento").value.trim();
+  const empresa = document.getElementById("nuevaEmpresa").value.trim();
+  const categoria = document.getElementById("agregarCategoria").value;
+  const catalogo = document.getElementById("agregarCatalogo").value;
+
+  if (!nombre || !documento || !empresa || !categoria || !catalogo) {
+    document.getElementById("mensajeErrorAgregar").textContent = "Todos los campos son obligatorios";
+    return;
+  }
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accion: "agregar",
+        nombre,
+        documento,
+        empresa,
+        categoria,
+        catalogo
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.exito) {
+      alert("Persona agregada correctamente");
+      cerrarModalAgregar();
+      buscar();
+    } else {
+      document.getElementById("mensajeErrorAgregar").textContent = data.mensaje || "Error al guardar";
+    }
+  } catch (error) {
+    document.getElementById("mensajeErrorAgregar").textContent = "Error de conexión";
+  }
+}
+
+/* ===============================
+   UTIL
+=============================== */
+function formatearFecha(fecha) {
+  if (!fecha) return "";
+  const f = new Date(fecha);
+  return f.toLocaleDateString("es-PE");
+}
