@@ -8,10 +8,6 @@ let personaActual = null;
 let registrosPersonas = [];
 
 /* ===============================
-   FUNCIONES
-=============================== */
-
-/* ===============================
    CARGA INICIAL DE REGISTROS
 =============================== */
 async function cargarRegistros() {
@@ -52,7 +48,9 @@ async function buscar() {
     await cargarRegistros();
   }
 
-  const persona = registrosPersonas.find(p => p.DOCUMENTO === documento);
+  // 🔹 Comparación robusta para no perder ceros iniciales ni espacios
+  const limpiarDoc = str => str.toString().trim().replace(/[^0-9]/g, '');
+  const persona = registrosPersonas.find(p => limpiarDoc(p.DOCUMENTO) === limpiarDoc(documento));
 
   if (!persona) {
     personaActual = null;
@@ -176,7 +174,6 @@ function cargarCatalogos() {
     selectCatalogo.appendChild(option);
   });
 
-  // Habilitar el select
   selectCatalogo.disabled = false;
 }
 
@@ -280,7 +277,7 @@ function formatearFecha(fecha) {
    INICIO
 =============================== */
 window.addEventListener("DOMContentLoaded", () => {
-  // Inicializar listeners
+  // Listeners
   document.getElementById("btnBuscar").addEventListener("click", buscar);
   document.getElementById("dni").addEventListener("keydown", e => {
     if (e.key === "Enter") buscar();
@@ -289,6 +286,6 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
   document.getElementById("agregarCategoria")?.addEventListener("change", cargarCatalogos);
 
-  // Cargar registros
+  // Cargar registros al inicio
   cargarRegistros();
 });
