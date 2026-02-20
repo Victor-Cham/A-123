@@ -1,7 +1,7 @@
 /* ===============================
    CONFIG
 =============================== */
-const API_URL = "https://script.google.com/macros/s/AKfycbz6ZaAYkyXMQg7-SRcSQ9rkCvSB1VgmdCkcUoZsbrBcLELgKp_EN5a9bC7W-pu6RY6B/exec";
+const API_URL = "TU_NUEVA_API_URL"; // reemplazar con tu nuevo Google Sheet Apps Script
 const CLAVE_SEGURIDAD = "A123";
 
 let personaActual = null;
@@ -22,40 +22,6 @@ document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgreg
 document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
 document.getElementById("btnCancelarPersona")?.addEventListener("click", cerrarModalAgregar);
 
-// Al cambiar categoría, cargar catálogo (usando categorias.js)
-document.getElementById("agregarCategoria")?.addEventListener("change", function() {
-  cargarCatalogoLocal(this.value);
-});
-
-/* ===============================
-   FUNCIONES CATEGORÍAS/CATÁLOGOS
-=============================== */
-function cargarCatalogoLocal(categoriaId) {
-  const catalogoSelect = document.getElementById("agregarCatalogo");
-  catalogoSelect.disabled = true;
-
-  if (!categoriaId) {
-    catalogoSelect.innerHTML = '<option value="">--Seleccione categoría primero--</option>';
-    return;
-  }
-
-  const categoria = categorias.find(c => c.id == categoriaId); // categorias viene de categorias.js
-  if (!categoria) return;
-
-  const valorAnterior = catalogoSelect.value; // mantener selección
-
-  catalogoSelect.innerHTML = '<option value="">--Seleccione--</option>';
-  categoria.catalogos.forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item;
-    opt.textContent = item;
-    if (item === valorAnterior) opt.selected = true; // restaurar selección
-    catalogoSelect.appendChild(opt);
-  });
-
-  catalogoSelect.disabled = false;
-}
-
 /* ===============================
    BUSCAR PERSONA (API)
 =============================== */
@@ -65,7 +31,7 @@ async function buscar() {
 
   if (!documento) return;
 
-  tbody.innerHTML = `<tr><td colspan="4">Buscando...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="5">Buscando...</td></tr>`; // ahora 5 columnas
 
   try {
     const res = await fetch(`${API_URL}?documento=${encodeURIComponent(documento)}`);
@@ -73,30 +39,30 @@ async function buscar() {
 
     if (!data.encontrado) {
       personaActual = null;
-      tbody.innerHTML = `<tr><td colspan="4">Persona no encontrada</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5">Persona no encontrada</td></tr>`;
       return;
     }
 
-    personaActual = data;
+    personaActual = data.persona;
 
     tbody.innerHTML = `
       <tr>
-        <td>${data.persona.nombre}</td>
-        <td>${data.persona.documento}</td>
-        <td>${data.persona.empresa}</td>
+        <td>${data.persona.NOMBRE}</td>
+        <td>${data.persona.DOCUMENTO}</td>
+        <td>${data.persona.EMPRESA}</td>
+        <td>${data.persona.CODIGO_UNICO}</td>
         <td>
           <span class="semaforo"
                 title="Ver detalle"
-                style="background:${colorSemaforo(data.estado)}"
+                style="background:${colorSemaforo("VERDE")}" 
                 onclick="abrirModalSeguridad()">
           </span>
         </td>
-      <td>${data.persona.CODIGO_UNICO || "-"}</td>
       </tr>
     `;
 
   } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="4">Error de conexión</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5">Error de conexión</td></tr>`;
   }
 }
 
@@ -121,7 +87,6 @@ function abrirModalSeguridad() {
 
 function validarCodigo() {
   const codigo = document.getElementById("codigoAcceso").value;
-
   if (codigo === CLAVE_SEGURIDAD) {
     cerrarModalSeguridad();
     mostrarDetalle();
@@ -138,48 +103,25 @@ function cerrarModalSeguridad() {
    MODAL DETALLE
 =============================== */
 function mostrarDetalle() {
-  const p = personaActual.persona;
+  const p = personaActual;
 
-  document.getElementById("detNombre").textContent = p.nombre;
-  document.getElementById("detDocumento").textContent = p.documento;
-  document.getElementById("detEmpresa").textContent = p.empresa;
+  document.getElementById("detNombre").textContent = p.NOMBRE;
+  document.getElementById("detDocumento").textContent = p.DOCUMENTO;
+  document.getElementById("detEmpresa").textContent = p.EMPRESA;
 
-  let nivelMax = 0;
-  let descripcionMax = "VERDE";
-
-  if (personaActual.detalles && personaActual.detalles.length > 0) {
-    personaActual.detalles.forEach(det => {
-      if (det.nivel > nivelMax) {
-        nivelMax = det.nivel;
-        descripcionMax = det.tipo_descripcion;
-      }
-    });
-  }
-
-  document.getElementById("detEstadoTexto").textContent = descripcionMax;
-  document.getElementById("detEstadoSemaforo").style.background =
-    nivelMax === 2 ? "red" :
-    nivelMax === 1 ? "orange" :
-    "green";
+  document.getElementById("detEstadoTexto").textContent = "VERDE"; // por ahora fijo
+  document.getElementById("detEstadoSemaforo").style.background = "green";
 
   const cont = document.getElementById("detDescripcion");
-
-  if (!personaActual.detalles || personaActual.detalles.length === 0) {
-    cont.textContent = "Sin registros.";
-  } else {
-    cont.innerHTML = personaActual.detalles
-      .map(d => `
-        <div class="detalle-item-modal">
-          <strong>${d.tipo_descripcion} (${d.tipo_codigo})</strong><br>
-          Categoria: <em>${d.categoria || "N/A"}</em><br>
-          Catálogo: <em>${d.catalogo || "N/A"}</em><br>
-          Detalle: ${d.descripcion || "-"}<br>
-          Fecha: ${formatearFecha(d.fecha)}
-        </div>
-        <hr>
-      `)
-      .join("");
-  }
+  cont.innerHTML = `
+    <div class="detalle-item-modal">
+      <strong>Categoría:</strong> ${p.CATEGORIA}<br>
+      <strong>Catálogo:</strong> ${p.CATALOGO}<br>
+      <strong>Detalle:</strong> ${p.DESCRIPCION || "-"}<br>
+      <strong>Fecha:</strong> ${formatearFecha(p.FECHA)}<br>
+      <strong>Archivo:</strong> ${p.ARCHIVO ? `<a href="${p.ARCHIVO}" target="_blank">Ver</a>` : "-"}
+    </div>
+  `;
 
   document.getElementById("modalDetalle").style.display = "flex";
 }
@@ -196,22 +138,9 @@ function abrirModalAgregar() {
   document.getElementById("nuevoNombre").value = "";
   document.getElementById("nuevoDocumento").value = "";
   document.getElementById("nuevaEmpresa").value = "";
+  document.getElementById("agregarCategoria").value = "";
+  document.getElementById("agregarCatalogo").innerHTML = '<option value="">--Seleccione categoría primero--</option>';
   document.getElementById("mensajeErrorAgregar").textContent = "";
-
-  // Cargar categorías locales
-  const catSelect = document.getElementById("agregarCategoria");
-  catSelect.innerHTML = '<option value="">--Seleccione--</option>';
-  categorias.forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.nombre;
-    catSelect.appendChild(opt);
-  });
-
-  // Reset catálogo
-  const catalogoSelect = document.getElementById("agregarCatalogo");
-  catalogoSelect.innerHTML = '<option value="">--Seleccione categoría primero--</option>';
-  catalogoSelect.disabled = true;
 }
 
 function cerrarModalAgregar() {
@@ -227,8 +156,10 @@ async function guardarPersona() {
   const empresa = document.getElementById("nuevaEmpresa").value.trim();
   const categoria = document.getElementById("agregarCategoria").value;
   const catalogo = document.getElementById("agregarCatalogo").value;
+  const descripcion = document.getElementById("agregarDescripcion").value.trim();
+  const fecha = document.getElementById("agregarFecha").value;
 
-  if (!nombre || !documento || !empresa || !categoria || !catalogo) {
+  if (!nombre || !documento || !empresa || !categoria || !catalogo || !descripcion || !fecha) {
     document.getElementById("mensajeErrorAgregar").textContent = "Todos los campos son obligatorios";
     return;
   }
@@ -239,11 +170,13 @@ async function guardarPersona() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         accion: "agregar",
-        nombre,
-        documento,
-        empresa,
-        categoria,
-        catalogo
+        NOMBRE: nombre,
+        DOCUMENTO: documento,
+        EMPRESA: empresa,
+        CATEGORIA: categoria,
+        CATALOGO: catalogo,
+        DESCRIPCION: descripcion,
+        FECHA: fecha
       })
     });
 
