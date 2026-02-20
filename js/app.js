@@ -8,23 +8,8 @@ let personaActual = null;
 let registrosPersonas = [];
 
 /* ===============================
-   EVENTOS
+   FUNCIONES
 =============================== */
-
-// Buscar persona
-document.getElementById("btnBuscar").addEventListener("click", buscar);
-document.getElementById("dni").addEventListener("keydown", e => {
-  if (e.key === "Enter") buscar();
-});
-
-// Modal agregar persona
-document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgregar);
-document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
-document.getElementById("btnCancelarPersona")?.addEventListener("click", cerrarModalAgregar);
-
-// Cambio de categoría
-document.getElementById("agregarCategoria")
-  ?.addEventListener("change", cargarCatalogos);
 
 /* ===============================
    CARGA INICIAL DE REGISTROS
@@ -82,7 +67,6 @@ async function buscar() {
       <td>${persona.NOMBRE}</td>
       <td>${persona.DOCUMENTO}</td>
       <td>${persona.EMPRESA}</td>
-      <td>${persona.CODIGO_UNICO}</td>
       <td>
         <span class="semaforo"
               title="Ver detalle"
@@ -90,6 +74,7 @@ async function buscar() {
               onclick="abrirModalSeguridad()">
         </span>
       </td>
+      <td>${persona.CODIGO_UNICO}</td>
     </tr>
   `;
 }
@@ -161,7 +146,6 @@ function cerrarModalDetalle() {
 /* ===============================
    CATEGORÍAS Y CATÁLOGOS
 =============================== */
-
 function cargarCategorias() {
   const selectCategoria = document.getElementById("agregarCategoria");
   selectCategoria.innerHTML = '<option value="">--Seleccione--</option>';
@@ -178,10 +162,11 @@ function cargarCatalogos() {
   const categoriaSeleccionada = document.getElementById("agregarCategoria").value;
   const selectCatalogo = document.getElementById("agregarCatalogo");
 
+  // Reset
   selectCatalogo.innerHTML = '<option value="">--Seleccione--</option>';
+  selectCatalogo.disabled = true;
 
   const categoria = window.categorias.find(c => c.nombre === categoriaSeleccionada);
-
   if (!categoria) return;
 
   categoria.catalogos.forEach(item => {
@@ -190,6 +175,9 @@ function cargarCatalogos() {
     option.textContent = item;
     selectCatalogo.appendChild(option);
   });
+
+  // Habilitar el select
+  selectCatalogo.disabled = false;
 }
 
 /* ===============================
@@ -209,6 +197,7 @@ function abrirModalAgregar() {
 
   document.getElementById("agregarCatalogo").innerHTML =
     '<option value="">--Seleccione categoría primero--</option>';
+  document.getElementById("agregarCatalogo").disabled = true;
 }
 
 function cerrarModalAgregar() {
@@ -291,5 +280,15 @@ function formatearFecha(fecha) {
    INICIO
 =============================== */
 window.addEventListener("DOMContentLoaded", () => {
+  // Inicializar listeners
+  document.getElementById("btnBuscar").addEventListener("click", buscar);
+  document.getElementById("dni").addEventListener("keydown", e => {
+    if (e.key === "Enter") buscar();
+  });
+  document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgregar);
+  document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
+  document.getElementById("agregarCategoria")?.addEventListener("change", cargarCatalogos);
+
+  // Cargar registros
   cargarRegistros();
 });
