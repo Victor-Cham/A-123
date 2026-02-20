@@ -1,8 +1,8 @@
 /* ===============================
    CONFIG
 =============================== */
-const API_URL = "https://script.google.com/macros/s/AKfycbyjXCK6KQsEESoLAbSdS2HXwwp1bsSgSvMi1-6olKEMGtjidFEyFiQGNoe5s0XnJSwU/exec";
-const CLAVE_SEGURIDAD = "A123";
+const API_URL = "https://script.google.com/macros/s/AKfycbzyRca6zO-r9ruSoEFKrLK3fopszewST8lan6qZhJlQZH7DPj_80FhbCQRQbBQ-mj3G/exec";
+const CLAVE_SEGUIDAD = "A123";
 
 let personaActual = null;
 let registrosPersonas = [];
