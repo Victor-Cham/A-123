@@ -85,11 +85,7 @@ async function buscar() {
 
   if (resultados.length === 0) {
     personaActual = null;
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5">Sin coincidencias</td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="5">Sin coincidencias</td></tr>`;
     return;
   }
 
@@ -106,7 +102,7 @@ async function buscar() {
               onclick="seleccionarPersona(${index})">
         </span>
       </td>
-      <td>${persona.CODIGO_UNICO}</td>
+      <td>${persona.CODIGO_UNICO || "-"}</td>
     </tr>
   `).join("");
 
@@ -186,7 +182,7 @@ function mostrarDetalle() {
       <strong>Catálogo:</strong> ${p.CATALOGO || "-"}<br>
       <strong>Detalle:</strong> ${p.DESCRIPCION || "-"}<br>
       <strong>Fecha:</strong> ${formatearFecha(p.FECHA)}<br>
-      <strong>Archivo:</strong> ${p.ARCHIVO ? `<a href="${p.ARCHIVO}" target="_blank">Ver</a>` : "-"}
+      <strong>Archivo:</strong> ${p.ARCHIVO ? `<a href="${p.ARCHIVO}" target="_blank">Ver archivo</a>` : "-"}
     </div>
   `;
 
@@ -198,10 +194,77 @@ function cerrarModalDetalle() {
 }
 
 /* ===============================
-   GUARDAR PERSONA (SIN CORS)
+   MODAL AGREGAR PERSONA
+=============================== */
+function abrirModalAgregar() {
+  const modal = document.getElementById("modalAgregar");
+  if (!modal) return;
+
+  modal.style.display = "flex";
+
+  // Reset campos
+  document.getElementById("nuevoNombre").value = "";
+  document.getElementById("nuevoDocumento").value = "";
+  document.getElementById("nuevaEmpresa").value = "";
+  document.getElementById("agregarDescripcion").value = "";
+  document.getElementById("agregarFecha").value = "";
+  document.getElementById("mensajeErrorAgregar").textContent = "";
+
+  // Inicializar categorías y catálogos
+  if (typeof cargarCategorias === "function") {
+    cargarCategorias();
+  }
+
+  const selectCatalogo = document.getElementById("agregarCatalogo");
+  selectCatalogo.innerHTML = '<option value="">--Seleccione categoría primero--</option>';
+  selectCatalogo.disabled = true;
+}
+
+function cerrarModalAgregar() {
+  const modal = document.getElementById("modalAgregar");
+  if (!modal) return;
+  modal.style.display = "none";
+}
+
+/* ===============================
+   CATEGORÍAS Y CATÁLOGOS
+=============================== */
+function cargarCategorias() {
+  const selectCategoria = document.getElementById("agregarCategoria");
+  selectCategoria.innerHTML = '<option value="">--Seleccione--</option>';
+
+  window.categorias?.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat.nombre;
+    option.textContent = cat.nombre;
+    selectCategoria.appendChild(option);
+  });
+}
+
+function cargarCatalogos() {
+  const categoriaSeleccionada = document.getElementById("agregarCategoria").value;
+  const selectCatalogo = document.getElementById("agregarCatalogo");
+
+  selectCatalogo.innerHTML = '<option value="">--Seleccione--</option>';
+  selectCatalogo.disabled = true;
+
+  const categoria = window.categorias?.find(c => c.nombre === categoriaSeleccionada);
+  if (!categoria) return;
+
+  categoria.catalogos.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item;
+    option.textContent = item;
+    selectCatalogo.appendChild(option);
+  });
+
+  selectCatalogo.disabled = false;
+}
+
+/* ===============================
+   GUARDAR PERSONA (CON ARCHIVO OPCIONAL)
 =============================== */
 async function guardarPersona() {
-
   const nombre = document.getElementById("nuevoNombre").value.trim();
   const documento = document.getElementById("nuevoDocumento").value.trim();
   const empresa = document.getElementById("nuevaEmpresa").value.trim();
@@ -209,6 +272,7 @@ async function guardarPersona() {
   const catalogo = document.getElementById("agregarCatalogo").value;
   const descripcion = document.getElementById("agregarDescripcion").value.trim();
   const fecha = document.getElementById("agregarFecha").value;
+  const archivoInput = document.getElementById("agregarArchivo");
 
   if (!nombre || !documento || !empresa || !categoria || !catalogo || !descripcion || !fecha) {
     document.getElementById("mensajeErrorAgregar").textContent =
@@ -217,26 +281,29 @@ async function guardarPersona() {
   }
 
   try {
+    const formData = new FormData();
+    formData.append("NOMBRE", nombre);
+    formData.append("DOCUMENTO", documento);
+    formData.append("EMPRESA", empresa);
+    formData.append("CATEGORIA", categoria);
+    formData.append("CATALOGO", catalogo);
+    formData.append("DESCRIPCION", descripcion);
+    formData.append("FECHA", fecha);
+    formData.append("usuarioregistra", "ADMIN");
 
-    const params = new URLSearchParams();
-    params.append("NOMBRE", nombre);
-    params.append("DOCUMENTO", documento);
-    params.append("EMPRESA", empresa);
-    params.append("CATEGORIA", categoria);
-    params.append("CATALOGO", catalogo);
-    params.append("DESCRIPCION", descripcion);
-    params.append("FECHA", fecha);
-    params.append("usuarioregistra", "ADMIN");
+    if (archivoInput.files.length > 0) {
+      const file = archivoInput.files[0];
+      const base64 = await convertirABase64(file);
+      formData.append("ARCHIVO_BASE64", base64);
+      formData.append("ARCHIVO_NOMBRE", file.name);
+      formData.append("ARCHIVO_TIPO", file.type);
+    }
 
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: params
-    });
-
+    const res = await fetch(API_URL, { method: "POST", body: formData });
     const data = await res.json();
 
     if (data.success) {
-      alert("Persona agregada correctamente\nCódigo único: " + data.CODIGO_UNICO);
+      alert("Persona agregada correctamente\nCódigo único: " + (data.CODIGO_UNICO || ""));
       cerrarModalAgregar();
       await cargarRegistros();
       document.getElementById("dni").value = documento;
@@ -251,6 +318,15 @@ async function guardarPersona() {
     document.getElementById("mensajeErrorAgregar").textContent =
       "Error de conexión";
   }
+}
+
+function convertirABase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = error => reject(error);
+  });
 }
 
 /* ===============================
@@ -268,13 +344,13 @@ function formatearFecha(fecha) {
 window.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("btnBuscar").addEventListener("click", buscar);
-
   document.getElementById("dni").addEventListener("keydown", e => {
     if (e.key === "Enter") buscar();
   });
 
   document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgregar);
   document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
+  document.getElementById("agregarCategoria")?.addEventListener("change", cargarCatalogos);
 
   await cargarRegistros();
 });
