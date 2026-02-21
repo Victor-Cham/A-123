@@ -2,10 +2,22 @@
    CONFIG
 =============================== */
 const API_URL = "https://script.google.com/macros/s/AKfycbzyRca6zO-r9ruSoEFKrLK3fopszewST8lan6qZhJlQZH7DPj_80FhbCQRQbBQ-mj3G/exec";
-const CLAVE_SEGURIDAD = "A123"; // 🔹 typo corregido
+const CLAVE_SEGURIDAD = "A123";
 
 let personaActual = null;
 let registrosPersonas = [];
+
+/* ===============================
+   NORMALIZAR TEXTO (SIN ACENTOS)
+=============================== */
+function normalizar(texto) {
+  return (texto || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .trim();
+}
 
 /* ===============================
    CARGA DE REGISTROS DESDE API
@@ -23,22 +35,22 @@ async function cargarRegistros() {
       localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
     } else {
       registrosPersonas = [];
-      console.warn("No hay registros o formato incorrecto:", data);
     }
   } catch (error) {
     registrosPersonas = [];
-    console.error("Error al cargar registros desde API:", error);
+    console.error("Error al cargar registros:", error);
   }
 }
 
 /* ===============================
-   BUSCAR PERSONA
+   BUSQUEDA INTELIGENTE
 =============================== */
 async function buscar() {
-  const documento = document.getElementById("dni").value.trim();
+
+  const queryRaw = document.getElementById("dni").value.trim();
   const tbody = document.querySelector("#tablaResultado tbody");
 
-  if (!documento) return null;
+  if (!queryRaw) return;
 
   tbody.innerHTML = `<tr><td colspan="5">Buscando...</td></tr>`;
 
@@ -46,43 +58,84 @@ async function buscar() {
     await cargarRegistros();
   }
 
-  const limpiarDoc = str => str.toString().trim().replace(/[^0-9]/g, '');
-  const persona = registrosPersonas.find(p => limpiarDoc(p.DOCUMENTO) === limpiarDoc(documento));
+  const query = normalizar(queryRaw);
+  const esNumero = /^[0-9]+$/.test(query);
 
-  if (!persona) {
+  let resultados = registrosPersonas.map(p => {
+
+    let score = 0;
+
+    const doc = normalizar(p.DOCUMENTO);
+    const nombre = normalizar(p.NOMBRE);
+
+    if (esNumero) {
+      if (doc === query) score = 100;
+      else if (doc.startsWith(query)) score = 80;
+      else if (doc.includes(query)) score = 60;
+    } else {
+      if (nombre === query) score = 95;
+      else if (nombre.startsWith(query)) score = 80;
+      else if (nombre.includes(query)) score = 60;
+    }
+
+    return { ...p, score };
+  })
+  .filter(p => p.score > 0)
+  .sort((a, b) => b.score - a.score);
+
+  if (resultados.length === 0) {
     personaActual = null;
-    tbody.innerHTML = `<tr><td colspan="5">Persona no encontrada</td></tr>`;
-    return null;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5">Sin coincidencias</td>
+      </tr>
+    `;
+    return;
   }
 
-  personaActual = persona;
+  personaActual = resultados[0];
 
-  tbody.innerHTML = `
+  tbody.innerHTML = resultados.slice(0, 5).map((persona, index) => `
     <tr>
       <td>${persona.NOMBRE}</td>
       <td>${persona.DOCUMENTO}</td>
       <td>${persona.EMPRESA}</td>
       <td>
         <span class="semaforo"
-              title="Ver detalle"
-              style="background:${colorSemaforo("VERDE")}" 
-              onclick="abrirModalSeguridad()">
+              style="background:${colorSemaforo(persona.CATEGORIA)}"
+              onclick="seleccionarPersona(${index})">
         </span>
       </td>
       <td>${persona.CODIGO_UNICO}</td>
     </tr>
-  `;
+  `).join("");
 
-  return persona;
+  window.resultadosBusqueda = resultados;
 }
 
 /* ===============================
-   SEMÁFORO
+   SELECCIONAR PERSONA RESULTADO
 =============================== */
-function colorSemaforo(estado) {
-  return estado === "ROJO" ? "red" :
-         estado === "AMARILLO" ? "orange" :
-         "green";
+function seleccionarPersona(index) {
+  personaActual = window.resultadosBusqueda[index];
+  abrirModalSeguridad();
+}
+
+/* ===============================
+   SEMAFORO POR CATEGORIA
+=============================== */
+function colorSemaforo(categoria) {
+
+  if (!categoria || categoria.trim() === "") {
+    return "green";
+  }
+
+  const cat = normalizar(categoria);
+
+  if (cat === "PENALES Y JUDICIALES") return "red";
+  if (cat === "LABORALES") return "orange";
+
+  return "green";
 }
 
 /* ===============================
@@ -120,14 +173,17 @@ function mostrarDetalle() {
   document.getElementById("detDocumento").textContent = p.DOCUMENTO;
   document.getElementById("detEmpresa").textContent = p.EMPRESA;
 
-  document.getElementById("detEstadoTexto").textContent = "VERDE";
-  document.getElementById("detEstadoSemaforo").style.background = "green";
+  document.getElementById("detEstadoTexto").textContent =
+    !p.CATEGORIA ? "SIN REGISTRO" : p.CATEGORIA;
+
+  document.getElementById("detEstadoSemaforo").style.background =
+    colorSemaforo(p.CATEGORIA);
 
   const cont = document.getElementById("detDescripcion");
   cont.innerHTML = `
     <div class="detalle-item-modal">
-      <strong>Categoría:</strong> ${p.CATEGORIA}<br>
-      <strong>Catálogo:</strong> ${p.CATALOGO}<br>
+      <strong>Categoría:</strong> ${p.CATEGORIA || "-"}<br>
+      <strong>Catálogo:</strong> ${p.CATALOGO || "-"}<br>
       <strong>Detalle:</strong> ${p.DESCRIPCION || "-"}<br>
       <strong>Fecha:</strong> ${formatearFecha(p.FECHA)}<br>
       <strong>Archivo:</strong> ${p.ARCHIVO ? `<a href="${p.ARCHIVO}" target="_blank">Ver</a>` : "-"}
@@ -142,68 +198,10 @@ function cerrarModalDetalle() {
 }
 
 /* ===============================
-   CATEGORÍAS Y CATÁLOGOS
-=============================== */
-function cargarCategorias() {
-  const selectCategoria = document.getElementById("agregarCategoria");
-  selectCategoria.innerHTML = '<option value="">--Seleccione--</option>';
-
-  window.categorias.forEach(cat => {
-    const option = document.createElement("option");
-    option.value = cat.nombre;
-    option.textContent = cat.nombre;
-    selectCategoria.appendChild(option);
-  });
-}
-
-function cargarCatalogos() {
-  const categoriaSeleccionada = document.getElementById("agregarCategoria").value;
-  const selectCatalogo = document.getElementById("agregarCatalogo");
-
-  selectCatalogo.innerHTML = '<option value="">--Seleccione--</option>';
-  selectCatalogo.disabled = true;
-
-  const categoria = window.categorias.find(c => c.nombre === categoriaSeleccionada);
-  if (!categoria) return;
-
-  categoria.catalogos.forEach(item => {
-    const option = document.createElement("option");
-    option.value = item;
-    option.textContent = item;
-    selectCatalogo.appendChild(option);
-  });
-
-  selectCatalogo.disabled = false;
-}
-
-/* ===============================
-   MODAL AGREGAR PERSONA
-=============================== */
-function abrirModalAgregar() {
-  document.getElementById("modalAgregar").style.display = "flex";
-
-  cargarCategorias();
-
-  document.getElementById("nuevoNombre").value = "";
-  document.getElementById("nuevoDocumento").value = "";
-  document.getElementById("nuevaEmpresa").value = "";
-  document.getElementById("agregarDescripcion").value = "";
-  document.getElementById("agregarFecha").value = "";
-  document.getElementById("mensajeErrorAgregar").textContent = "";
-
-  document.getElementById("agregarCatalogo").innerHTML =
-    '<option value="">--Seleccione categoría primero--</option>';
-  document.getElementById("agregarCatalogo").disabled = true;
-}
-
-function cerrarModalAgregar() {
-  document.getElementById("modalAgregar").style.display = "none";
-}
-
-/* ===============================
-   GUARDAR PERSONA
+   GUARDAR PERSONA (SIN CORS)
 =============================== */
 async function guardarPersona() {
+
   const nombre = document.getElementById("nuevoNombre").value.trim();
   const documento = document.getElementById("nuevoDocumento").value.trim();
   const empresa = document.getElementById("nuevaEmpresa").value.trim();
@@ -213,24 +211,26 @@ async function guardarPersona() {
   const fecha = document.getElementById("agregarFecha").value;
 
   if (!nombre || !documento || !empresa || !categoria || !catalogo || !descripcion || !fecha) {
-    document.getElementById("mensajeErrorAgregar").textContent = "Todos los campos son obligatorios";
+    document.getElementById("mensajeErrorAgregar").textContent =
+      "Todos los campos son obligatorios";
     return;
   }
 
   try {
+
+    const params = new URLSearchParams();
+    params.append("NOMBRE", nombre);
+    params.append("DOCUMENTO", documento);
+    params.append("EMPRESA", empresa);
+    params.append("CATEGORIA", categoria);
+    params.append("CATALOGO", catalogo);
+    params.append("DESCRIPCION", descripcion);
+    params.append("FECHA", fecha);
+    params.append("usuarioregistra", "ADMIN");
+
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        NOMBRE: nombre,
-        DOCUMENTO: documento,
-        EMPRESA: empresa,
-        CATEGORIA: categoria,
-        CATALOGO: catalogo,
-        DESCRIPCION: descripcion,
-        FECHA: fecha,
-        usuarioregistra: "ADMIN"
-      })
+      body: params
     });
 
     const data = await res.json();
@@ -238,16 +238,18 @@ async function guardarPersona() {
     if (data.success) {
       alert("Persona agregada correctamente\nCódigo único: " + data.CODIGO_UNICO);
       cerrarModalAgregar();
-
-      await cargarRegistros(); // 🔹 actualizar registros
+      await cargarRegistros();
       document.getElementById("dni").value = documento;
-      await buscar(); // 🔹 asegurar personaActual
+      buscar();
     } else {
       document.getElementById("mensajeErrorAgregar").textContent =
         data.error || "Error al guardar";
     }
+
   } catch (error) {
-    document.getElementById("mensajeErrorAgregar").textContent = "Error de conexión";
+    console.error(error);
+    document.getElementById("mensajeErrorAgregar").textContent =
+      "Error de conexión";
   }
 }
 
@@ -264,15 +266,15 @@ function formatearFecha(fecha) {
    INICIO
 =============================== */
 window.addEventListener("DOMContentLoaded", async () => {
-  // Listeners
+
   document.getElementById("btnBuscar").addEventListener("click", buscar);
+
   document.getElementById("dni").addEventListener("keydown", e => {
     if (e.key === "Enter") buscar();
   });
+
   document.getElementById("btnAgregar")?.addEventListener("click", abrirModalAgregar);
   document.getElementById("btnGuardarPersona")?.addEventListener("click", guardarPersona);
-  document.getElementById("agregarCategoria")?.addEventListener("change", cargarCatalogos);
 
-  // 🔹 Cargar registros desde API al inicio
   await cargarRegistros();
 });
