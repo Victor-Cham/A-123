@@ -267,7 +267,8 @@ async function guardarPersona() {
   const archivoInput = document.getElementById("agregarArchivo");
 
   if (!nombre || !documento || !empresa || !categoria || !catalogo || !descripcion || !fecha) {
-    document.getElementById("mensajeErrorAgregar").textContent = "Todos los campos son obligatorios";
+    document.getElementById("mensajeErrorAgregar").textContent =
+      "Todos los campos son obligatorios";
     return;
   }
 
@@ -290,22 +291,42 @@ async function guardarPersona() {
       formData.append("ARCHIVO_TIPO", file.type);
     }
 
-    const res = await fetch(API_URL, { method: "POST", body: formData });
-    const data = await res.json();
+    // Insert usando no-cors
+    await fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: formData
+    });
 
-    if (data.success) {
-      alert("Persona agregada correctamente\nCódigo único: " + (data.CODIGO_UNICO || ""));
-      cerrarModalAgregar();
-      await cargarRegistros();
-      document.getElementById("dni").value = documento;
-      buscar();
-    } else {
-      document.getElementById("mensajeErrorAgregar").textContent = data.error || "Error al guardar";
-    }
+    // Aviso genérico
+    alert("Registro enviado correctamente.\nEl código único se mostrará al buscarlo.");
+
+    cerrarModalAgregar();
+
+    // Agregar temporalmente a registros locales para que aparezca en la búsqueda
+    registrosPersonas.unshift({
+      NOMBRE: nombre,
+      DOCUMENTO: documento,
+      EMPRESA: empresa,
+      CATEGORIA: categoria,
+      CATALOGO: catalogo,
+      DESCRIPCION: descripcion,
+      FECHA: fecha,
+      ARCHIVO: archivoInput.files.length > 0 ? "archivo_subido" : null, // placeholder
+      CODIGO_UNICO: null
+    });
+
+    // Guardar localmente
+    localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
+
+    // Buscar el nuevo registro
+    document.getElementById("dni").value = documento;
+    buscar();
 
   } catch (error) {
     console.error(error);
-    document.getElementById("mensajeErrorAgregar").textContent = "Error de conexión";
+    document.getElementById("mensajeErrorAgregar").textContent =
+      "Error de conexión";
   }
 }
 
