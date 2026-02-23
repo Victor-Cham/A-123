@@ -334,19 +334,7 @@ async function guardarPersona() {
   }
 }
 
-    // Guardar localmente
-    localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
 
-    // Buscar el nuevo registro
-    document.getElementById("dni").value = documento;
-    buscar();
-
-  } catch (error) {
-    console.error(error);
-    document.getElementById("mensajeErrorAgregar").textContent =
-      "Error de conexión";
-  }
-}
 
 function convertirABase64(file) {
   return new Promise((resolve, reject) => {
