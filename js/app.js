@@ -256,6 +256,7 @@ function cargarCatalogos() {
 /* ===============================
    GUARDAR PERSONA (CON ARCHIVO OPCIONAL)
 ============================== */
+
 async function guardarPersona() {
   const nombre = document.getElementById("nuevoNombre").value.trim();
   const documento = document.getElementById("nuevoDocumento").value.trim();
@@ -273,59 +274,42 @@ async function guardarPersona() {
   }
 
   try {
-    const formData = new FormData();
-    formData.append("NOMBRE", nombre);
-    formData.append("DOCUMENTO", documento);
-    formData.append("EMPRESA", empresa);
-    formData.append("CATEGORIA", categoria);
-    formData.append("CATALOGO", catalogo);
-    formData.append("DESCRIPCION", descripcion);
-    formData.append("FECHA", fecha);
-    formData.append("usuarioregistra", "ADMIN");
+    const params = new URLSearchParams();
+
+    params.append("NOMBRE", nombre);
+    params.append("DOCUMENTO", documento);
+    params.append("EMPRESA", empresa);
+    params.append("CATEGORIA", categoria);
+    params.append("CATALOGO", catalogo);
+    params.append("DESCRIPCION", descripcion);
+    params.append("FECHA", fecha);
+    params.append("usuarioregistra", "ADMIN");
 
     if (archivoInput.files.length > 0) {
       const file = archivoInput.files[0];
       const base64 = await convertirABase64(file);
-      formData.append("ARCHIVO_BASE64", base64);
-      formData.append("ARCHIVO_NOMBRE", file.name);
-      formData.append("ARCHIVO_TIPO", file.type);
+
+      params.append("ARCHIVO_BASE64", base64);
+      params.append("ARCHIVO_NOMBRE", file.name);
+      params.append("ARCHIVO_TIPO", file.type);
     }
 
-const params = new URLSearchParams();
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: params
+    });
 
-params.append("NOMBRE", nombre);
-params.append("DOCUMENTO", documento);
-params.append("EMPRESA", empresa);
-params.append("CATEGORIA", categoria);
-params.append("CATALOGO", catalogo);
-params.append("DESCRIPCION", descripcion);
-params.append("FECHA", fecha);
-params.append("usuarioregistra", "ADMIN");
+    const result = await response.json();
 
-if (archivoInput.files.length > 0) {
-  const file = archivoInput.files[0];
-  const base64 = await convertirABase64(file);
+    if (!result.success) {
+      throw new Error(result.error || "Error al registrar");
+    }
 
-  params.append("ARCHIVO_BASE64", base64);
-  params.append("ARCHIVO_NOMBRE", file.name);
-  params.append("ARCHIVO_TIPO", file.type);
-}
-
-const response = await fetch(API_URL, {
-  method: "POST",
-  body: params
-});
-
-const result = await response.json();
-
-alert("Código generado: " + result.CODIGO_UNICO);
-
-    // Aviso genérico
-    alert("Registro enviado correctamente.\nEl código único se mostrará al buscarlo.");
+    alert("Registro exitoso.\nCódigo generado: " + result.CODIGO_UNICO);
 
     cerrarModalAgregar();
 
-    // Agregar temporalmente a registros locales para que aparezca en la búsqueda
+    // Actualizar memoria local con el código real
     registrosPersonas.unshift({
       NOMBRE: nombre,
       DOCUMENTO: documento,
@@ -334,9 +318,21 @@ alert("Código generado: " + result.CODIGO_UNICO);
       CATALOGO: catalogo,
       DESCRIPCION: descripcion,
       FECHA: fecha,
-      ARCHIVO: archivoInput.files.length > 0 ? "archivo_subido" : null, // placeholder
-      CODIGO_UNICO: null
+      ARCHIVO: result.ARCHIVO || null,
+      CODIGO_UNICO: result.CODIGO_UNICO
     });
+
+    localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
+
+    document.getElementById("dni").value = documento;
+    buscar();
+
+  } catch (error) {
+    console.error(error);
+    document.getElementById("mensajeErrorAgregar").textContent =
+      "Error de conexión o servidor";
+  }
+}
 
     // Guardar localmente
     localStorage.setItem("registrosPersonas", JSON.stringify(registrosPersonas));
