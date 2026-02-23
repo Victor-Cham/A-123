@@ -291,12 +291,34 @@ async function guardarPersona() {
       formData.append("ARCHIVO_TIPO", file.type);
     }
 
-    // Insert usando no-cors
-    await fetch(API_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: formData
-    });
+const params = new URLSearchParams();
+
+params.append("NOMBRE", nombre);
+params.append("DOCUMENTO", documento);
+params.append("EMPRESA", empresa);
+params.append("CATEGORIA", categoria);
+params.append("CATALOGO", catalogo);
+params.append("DESCRIPCION", descripcion);
+params.append("FECHA", fecha);
+params.append("usuarioregistra", "ADMIN");
+
+if (archivoInput.files.length > 0) {
+  const file = archivoInput.files[0];
+  const base64 = await convertirABase64(file);
+
+  params.append("ARCHIVO_BASE64", base64);
+  params.append("ARCHIVO_NOMBRE", file.name);
+  params.append("ARCHIVO_TIPO", file.type);
+}
+
+const response = await fetch(API_URL, {
+  method: "POST",
+  body: params
+});
+
+const result = await response.json();
+
+alert("Código generado: " + result.CODIGO_UNICO);
 
     // Aviso genérico
     alert("Registro enviado correctamente.\nEl código único se mostrará al buscarlo.");
