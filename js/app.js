@@ -88,26 +88,29 @@ async function buscar() {
   const resultadosAgrupados = Object.values(agrupados);
 
   // 3️⃣ Render tabla agrupada
-  tbody.innerHTML = resultadosAgrupados.map((grupo, index) => {
+  // 3️⃣ Render tabla agrupada
+tbody.innerHTML = resultadosAgrupados.map((grupo, index) => {
 
-    const persona = grupo[0];
-    const color = colorSemaforoPorRegistros(grupo);
+  const persona = grupo[0];
+  const { color, codigo } = colorSemaforoPorRegistros(grupo);
 
-    return `
-      <tr>
-        <td>${persona.NOMBRE}</td>
-        <td>${persona.DOCUMENTO}</td>
-        <td>${persona.EMPRESA}</td>
-        <td>
-          <span class="semaforo"
-                style="background:${color}"
-                onclick="seleccionarGrupo(${index})">
-          </span>
-        </td>
-        <td>${grupo.length} registro(s)</td>
-      </tr>
-    `;
-  }).join("");
+  return `
+    <tr>
+      <td>${persona.NOMBRE}</td>
+      <td>${persona.DOCUMENTO}</td>
+      <td>${persona.EMPRESA}</td>
+      <td>
+        <span class="semaforo"
+              style="background:${color}"
+              onclick="seleccionarGrupo(${index})">
+        </span>
+      </td>
+      <td>${codigo}</td>
+    </tr>
+  `;
+}).join("");
+
+   
 
   window.gruposBusqueda = resultadosAgrupados;
 }
@@ -124,27 +127,32 @@ function seleccionarGrupo(index) {
    SEMAFORO POR CATEGORIA
 ============================== */
 function colorSemaforoPorRegistros(registros) {
-  if (!registros || registros.length === 0) return "green";
+  if (!registros || registros.length === 0) return { color: "green", nivel: 3, codigo: "-" };
 
   let tienePenal = false;
   let tieneLaboral = false;
+  let codigoPenal = null;
+  let codigoLaboral = null;
 
   registros.forEach(r => {
     const cat = normalizar(r.CATEGORIA);
+    const codigo = r.CODIGO_UNICO || "-";
 
     if (cat.includes("PENAL") || cat.includes("JUDICIAL")) {
       tienePenal = true;
+      if (!codigoPenal) codigoPenal = codigo;
     }
 
     if (cat.includes("LABORAL")) {
       tieneLaboral = true;
+      if (!codigoLaboral) codigoLaboral = codigo;
     }
   });
 
-  if (tienePenal) return "red";
-  if (tieneLaboral) return "orange";
+  if (tienePenal) return { color: "red", nivel: 1, codigo: codigoPenal };
+  if (tieneLaboral) return { color: "orange", nivel: 2, codigo: codigoLaboral };
 
-  return "green";
+  return { color: "green", nivel: 3, codigo: registros[0].CODIGO_UNICO || "-" };
 }
 
 /* ===============================
@@ -172,6 +180,15 @@ function cerrarModalSeguridad() {
 }
 
 /* ===============================
+   CERRAR MODAL DETALLE
+============================== */
+function cerrarModalDetalle() {
+  const modal = document.getElementById("modalDetalle");
+  if (!modal) return;
+  modal.style.display = "none";
+}
+
+/* ===============================
    MODAL DETALLE
 ============================== */
 function mostrarDetalle() {
@@ -184,11 +201,13 @@ function mostrarDetalle() {
   document.getElementById("detDocumento").textContent = base.DOCUMENTO;
   document.getElementById("detEmpresa").textContent = base.EMPRESA;
 
-  document.getElementById("detEstadoSemaforo").style.background =
-    colorSemaforoPorRegistros(registros);
+const { color, nivel, codigo } = colorSemaforoPorRegistros(registros);
 
-  document.getElementById("detEstadoTexto").textContent =
-    registros.length + " antecedente(s) encontrado(s)";
+document.getElementById("detEstadoSemaforo").style.background = color;
+document.getElementById("detEstadoTexto").textContent =
+  registros.length + " antecedente(s) encontrado(s)";
+
+document.getElementById("detCodigoUnico").textContent = codigo; // opcional, si quieres mostrar aparte
 
   const cont = document.getElementById("detDescripcion");
 
