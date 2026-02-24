@@ -207,7 +207,7 @@ document.getElementById("detEstadoSemaforo").style.background = color;
 document.getElementById("detEstadoTexto").textContent =
   registros.length + " antecedente(s) encontrado(s)";
 
-document.getElementById("detCodigoUnico").textContent = codigo; // opcional, si quieres mostrar aparte
+//document.getElementById("detCodigoUnico").textContent = codigo; // opcional, si quieres mostrar aparte
 
   const cont = document.getElementById("detDescripcion");
 
