@@ -59,7 +59,8 @@ async function sendLoginRequest(usuario, contrasena) {
     body: JSON.stringify({
       action: "login",
       usuario: usuario,
-      contrasena: contrasena
+      contrasena: contrasena,
+      origin: origin // <-- envia el dominio al Apps Script
     }),
   });
 
