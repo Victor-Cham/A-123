@@ -49,19 +49,13 @@ function showAlert(msg) {
   alertDiv.style.display = "block";
 }
 
-// Enviar request al Apps Script (POST seguro)
+// Enviar request al Apps Script
 async function sendLoginRequest(usuario, contrasena) {
-  const res = await fetch(URL_LOGIN, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      action: "login",
-      usuario: usuario,
-      contrasena: contrasena,
-      origin: origin // <-- envia el dominio al Apps Script
-    }),
+  const query = new URLSearchParams({ action: "login", usuario, contrasena });
+
+  const res = await fetch(`${URL_LOGIN}?${query.toString()}`, {
+    method: "GET",
+    headers: { "Accept": "application/json" },
   });
 
   if (!res.ok) throw new Error(`HTTP error ${res.status}`);
